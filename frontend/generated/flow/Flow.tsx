@@ -18,8 +18,10 @@ import { Flow as _Flow } from "Frontend/generated/jar-resources/Flow.js";
 import React, {
     useCallback,
     useEffect,
+    useReducer,
     useRef,
-    useState
+    useState,
+    type ReactNode
 } from "react";
 import {
     matchRoutes,
@@ -29,6 +31,7 @@ import {
     type NavigateOptions,
 } from "react-router-dom";
 import type { AgnosticRouteObject } from '@remix-run/router';
+import { createPortal } from "react-dom";
 
 const flow = new _Flow({
     imports: () => import("Frontend/generated/flow/generated-flow-imports.js")
@@ -170,6 +173,35 @@ const prevent = () => postpone;
 
 type RouterContainer = Awaited<ReturnType<typeof flow.serverSideRoutes[0]["action"]>>;
 
+type PortalEntry = {
+    readonly children: ReactNode,
+    readonly domNode: Element | DocumentFragment,
+};
+
+const enum PortalActionType {
+    Add = 'add',
+    Remove = 'remove',
+}
+
+type PortalAction = {
+    readonly type: PortalActionType,
+    readonly entry: PortalEntry,
+};
+
+function portalsReducer(portals: readonly PortalEntry[], action: PortalAction) {
+    switch (action.type) {
+        case PortalActionType.Add:
+            return [
+                ...portals,
+                action.entry
+            ];
+        case PortalActionType.Remove:
+            return portals.filter(({domNode}) => domNode !== action.entry.domNode);
+        default:
+            return portals;
+    }
+}
+
 
 type NavigateOpts =  {
     to: string,
@@ -246,6 +278,21 @@ function Flow() {
     const roundTrip = useRef<Promise<void> | undefined>(undefined);
     const queuedNavigate = useQueuedNavigate(roundTrip, navigated);
 
+    // portalsReducer function is used as state outside the Flow component.
+    const [portals, dispatchPortalAction] = useReducer(portalsReducer, []);
+
+    const removePortalEventHandler = useCallback((event: CustomEvent<PortalEntry>) => {
+        event.preventDefault();
+        dispatchPortalAction({type: PortalActionType.Remove, entry: event.detail});
+    }, [dispatchPortalAction])
+
+    const addPortalEventHandler = useCallback((event: CustomEvent<PortalEntry>) => {
+        event.preventDefault();
+        // Add remove event listener to the portal node
+        event.detail.domNode.addEventListener('flow-portal-remove', removePortalEventHandler as EventListener, {once: true});
+        dispatchPortalAction({type: PortalActionType.Add, entry: event.detail});
+    }, [dispatchPortalAction, removePortalEventHandler]);
+
     const navigateEventHandler = useCallback((event: MouseEvent) => {
         const path = extractPath(event);
         if (!path) {
@@ -307,6 +354,7 @@ function Flow() {
     useEffect(() => {
         return () => {
             containerRef.current?.parentNode?.removeChild(containerRef.current);
+            containerRef.current?.removeEventListener('flow-portal-add', addPortalEventHandler as EventListener);
             containerRef.current = undefined;
         };
     }, []);
@@ -316,7 +364,8 @@ function Flow() {
             let blockingPromise: any;
             roundTrip.current = new Promise<void>((resolve,reject) => blockingPromise = {resolve:resolve,reject:reject});
 
-            // Do not skip server round-trip if navigation originates from a click on a link
+            // Proceed to the blocked location, unless the navigation originates from a click on a link.
+            // In that case continue with function execution and perform a server round-trip
             if (navigated.current && !fromAnchor.current) {
                 blocker.proceed();
                 blockingPromise.resolve();
@@ -359,14 +408,12 @@ function Flow() {
                                     blockingPromise.resolve();
                                 } else {
                                     blocker.proceed();
-                                    window.removeEventListener('click',  navigateEventHandler);
                                     blockingPromise.resolve();
                                 }
                             }
                         } else {
                             // permitted navigation: proceed with the blocker
                             blocker.proceed();
-                            window.removeEventListener('click',  navigateEventHandler);
                             blockingPromise.resolve();
                         }
                     });
@@ -375,6 +422,9 @@ function Flow() {
     }, [blocker.state, blocker.location]);
 
     useEffect(() => {
+        if (blocker.state === 'blocked') {
+            return;
+        }
         if (navigated.current) {
             navigated.current = false;
             fireNavigated(location.pathname,location.search);
@@ -385,6 +435,7 @@ function Flow() {
                 const outlet = ref.current?.parentNode;
                 if (outlet && outlet !== container.parentNode) {
                     outlet.append(container);
+                    container.addEventListener('flow-portal-add', addPortalEventHandler as EventListener);
                     window.addEventListener('click',  navigateEventHandler);
                     containerRef.current = container
                 }
@@ -398,7 +449,10 @@ function Flow() {
             });
     }, [location]);
 
-    return <output ref={ref} />;
+    return <>
+        <output ref={ref} style={{display: "none"}}/>
+        {portals.map(({children, domNode}) => createPortal(children, domNode))}
+    </>;
 }
 Flow.type = 'FlowContainer'; // This is for copilot to recognize this
 

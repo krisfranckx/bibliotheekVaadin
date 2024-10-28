@@ -30,9 +30,6 @@ import jakarta.annotation.security.RolesAllowed;
 @PageTitle("Boeken | lijst")
 @Route(value = "ll/admin/books", layout = ADMIN_LL_MainLayout.class) //wordt geladen binnen mainlayout
 @RolesAllowed( "ADMIN")
-@JsModule("@vaadin/vaadin-lumo-styles/badge.js")
-// Here, we add the style sheet to the global scope
-@Theme( variant = Lumo.DARK)
 public class BookList extends VerticalLayout {
     private final BookService bookService;
     Grid<Book> grid = new Grid<>(Book.class);

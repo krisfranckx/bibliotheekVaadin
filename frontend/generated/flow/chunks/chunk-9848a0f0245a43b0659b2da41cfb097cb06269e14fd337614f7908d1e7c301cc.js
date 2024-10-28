@@ -11,7 +11,6 @@ import 'Frontend/generated/jar-resources/buttonFunctions.js';
 import 'Frontend/generated/jar-resources/menubarConnector.js';
 import '@vaadin/menu-bar/theme/lumo/vaadin-menu-bar.js';
 import '@vaadin/form-layout/theme/lumo/vaadin-form-layout.js';
-import '@vaadin/vaadin-lumo-styles/badge.js';
 import '@vaadin/vertical-layout/theme/lumo/vaadin-vertical-layout.js';
 import '@vaadin/horizontal-layout/theme/lumo/vaadin-horizontal-layout.js';
 import '@vaadin/grid/theme/lumo/vaadin-grid-column-group.js';
