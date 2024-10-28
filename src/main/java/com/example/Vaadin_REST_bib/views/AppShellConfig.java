@@ -11,7 +11,6 @@ import com.vaadin.flow.theme.lumo.Lumo;
 @Meta(name = "viewport", content = "width=device-width, initial-scale=1.0")
 @JsModule("@vaadin/vaadin-lumo-styles/badge.js")
 // Here, we add the style sheet to the global scope
-@Theme(variant = Lumo.DARK)
 public class AppShellConfig implements AppShellConfigurator {
 
 }
