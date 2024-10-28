@@ -32,7 +32,7 @@ import jakarta.annotation.security.RolesAllowed;
 @RolesAllowed( "ADMIN")
 @JsModule("@vaadin/vaadin-lumo-styles/badge.js")
 // Here, we add the style sheet to the global scope
-@Theme(value ="Lumo", variant = Lumo.DARK)
+@Theme( variant = Lumo.DARK)
 public class BookList extends VerticalLayout {
     private final BookService bookService;
     Grid<Book> grid = new Grid<>(Book.class);
