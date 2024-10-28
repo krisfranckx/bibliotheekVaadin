@@ -8,6 +8,10 @@ import com.example.Vaadin_REST_bib.restClasses.Book;
 import com.example.Vaadin_REST_bib.views.forms.BookForm;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.dependency.CssImport;
+import com.vaadin.flow.theme.Theme;
+import com.vaadin.flow.theme.lumo.Lumo;
+import com.vaadin.flow.component.dependency.JsModule;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.notification.Notification;
@@ -26,6 +30,9 @@ import jakarta.annotation.security.RolesAllowed;
 @PageTitle("Boeken | lijst")
 @Route(value = "ll/admin/books", layout = ADMIN_LL_MainLayout.class) //wordt geladen binnen mainlayout
 @RolesAllowed( "ADMIN")
+@JsModule("@vaadin/vaadin-lumo-styles/badge.js")
+// Here, we add the style sheet to the global scope
+@Theme(value ="Lumo", variant = Lumo.DARK)
 public class BookList extends VerticalLayout {
     private final BookService bookService;
     Grid<Book> grid = new Grid<>(Book.class);
