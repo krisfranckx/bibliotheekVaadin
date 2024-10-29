@@ -66,6 +66,10 @@
 			<groupId>com.vaadin</groupId>
 			<artifactId>flow-server-production-mode</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>jakarta.json</groupId>
+			<artifactId>jakarta.json-api</artifactId>
+		</dependency>
 		<!--<dependency>
 			<groupId>com.example</groupId>
 			<artifactId>Vaadin_REST_bib</artifactId>

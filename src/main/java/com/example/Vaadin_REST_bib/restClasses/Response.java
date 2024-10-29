@@ -83,6 +83,8 @@ public class Response {
         this.data = data;
     }
 
+
+
     @JsonAnyGetter
     public Map<String, Object> getAdditionalProperties() {
         return this.additionalProperties;

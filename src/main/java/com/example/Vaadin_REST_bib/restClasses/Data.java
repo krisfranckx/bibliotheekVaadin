@@ -13,6 +13,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import org.springframework.web.servlet.view.RedirectView;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({
@@ -50,6 +51,8 @@ public class Data {
     private LKBook lkbook;
     @JsonProperty("magazine")
     private Magazine magazine;
+    @JsonProperty("view")
+    private RedirectView view;
     @JsonIgnore
     private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
@@ -125,6 +128,16 @@ public class Data {
         this.magazines = magazines;
     }
 
+
+    @JsonProperty("view")
+    public RedirectView getView() {
+        return view;
+    }
+
+    @JsonProperty("view")
+    public void setView(RedirectView magazines) {
+        this.view = view;
+    }
 
     @JsonProperty("users")
     public List<User> getUsers() {
