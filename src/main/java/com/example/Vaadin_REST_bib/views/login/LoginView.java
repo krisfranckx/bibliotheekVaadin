@@ -18,7 +18,7 @@ import com.vaadin.flow.server.auth.AnonymousAllowed;
 @AnonymousAllowed
 public class LoginView extends VerticalLayout implements BeforeEnterObserver {
     LoginForm toAddLoginForm = new LoginForm();
-    Image logo = new Image("src/main/resources/static/images/img.png", "Logo GO! atheneum Boom");
+    Image logo = new Image("https://th.bing.com/th/id/OIP.FgdGi-5_qYZJS5FrxM6dDAHaDZ?pid=ImgDet&w=226&h=102.72727272727272&c=7", "Logo GO! atheneum Boom");
 
 
     public LoginView() {
