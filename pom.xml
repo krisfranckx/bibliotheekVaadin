@@ -60,7 +60,7 @@
 		<dependency>
 			<groupId>com.vaadin</groupId>
 			<artifactId>vaadin-maven-plugin</artifactId>
-			<version>24.4.13</version>
+			<version>${vaadin.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.vaadin</groupId>
