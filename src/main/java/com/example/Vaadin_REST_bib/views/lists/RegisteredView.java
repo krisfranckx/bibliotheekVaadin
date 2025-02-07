@@ -29,7 +29,7 @@ public class RegisteredView extends VerticalLayout {
         this.setAlignItems(Alignment.CENTER);
         this.setJustifyContentMode(JustifyContentMode.CENTER);
         Paragraph paragraph = new Paragraph("Je bent geregistreerd bij de bibliotheek.");
-        Paragraph paragraph2 = new Paragraph("Ga naar je inbox om je account te bevestigen en log nadien in.");
+        Paragraph paragraph2 = new Paragraph("Ga naar je inbox of SPAM-folder om je account te bevestigen en log nadien in.");
 
         RouterLink loginLink = new RouterLink("Login", LoginView.class);
 

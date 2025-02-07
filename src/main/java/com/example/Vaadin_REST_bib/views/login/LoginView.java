@@ -1,6 +1,7 @@
 package com.example.Vaadin_REST_bib.views.login;
 
 import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.login.LoginForm;
 import com.vaadin.flow.component.login.LoginI18n;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -17,10 +18,10 @@ import com.vaadin.flow.server.auth.AnonymousAllowed;
 @AnonymousAllowed
 public class LoginView extends VerticalLayout implements BeforeEnterObserver {
     LoginForm toAddLoginForm = new LoginForm();
+    Image logo = new Image("src/main/resources/static/images/img.png", "Logo GO! atheneum Boom");
 
 
     public LoginView() {
-        //configPage();
         addClassName("login-view");
         setSizeFull();
         setAlignItems(Alignment.CENTER);
@@ -47,6 +48,7 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         toAddLoginForm.setAction("/login");
 
         add(
+                logo,
                toAddLoginForm
         );
     }

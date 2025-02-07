@@ -14,7 +14,4 @@ public class VaadinRestBibApplication{
 		SpringApplication.run(VaadinRestBibApplication.class, args);
 	}
 
-
-
-
 }

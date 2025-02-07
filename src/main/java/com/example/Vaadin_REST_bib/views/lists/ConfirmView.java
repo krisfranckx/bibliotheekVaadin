@@ -43,7 +43,6 @@ public class ConfirmView extends VerticalLayout implements BeforeEnterObserver {
         //RouterLink confirmlink = new RouterLink("Klik om je bevestiging te voltooien", ConfirmedView.class);
         Button button = new Button("Klik hier");
         button.addClickListener(event -> {
-            System.out.println("Geklikt°°°°°°°°°°°°°°°°°°°°°");
             confirmationService.confirmWithUserclick(token,"true");
             UI.getCurrent().navigate(Settings.BASE_URL_FRONT+"/confirmed");
         });
