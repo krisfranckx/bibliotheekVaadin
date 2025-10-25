@@ -97,7 +97,7 @@ public class LK_UserList extends VerticalLayout {
         filterText.addValueChangeListener(e->updateGrid());
 
         Button btn_userToevoegen = new Button("User toevoegen");
-        btn_userToevoegen.setEnabled(false);
+        btn_userToevoegen.setEnabled(true);
         btn_userToevoegen.addClickListener(e-> addUser());
         HorizontalLayout toolbar = new HorizontalLayout(filterText, btn_userToevoegen);
         toolbar.addClassName("toolbar");
