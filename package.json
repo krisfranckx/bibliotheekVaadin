@@ -69,7 +69,11 @@
     "@vaadin/virtual-list": "24.3.11",
     "construct-style-sheets-polyfill": "3.1.0",
     "date-fns": "2.29.3",
-    "lit": "3.1.2"
+    "lit": "3.1.2",
+    "@remix-run/router": "1.21.1",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "react-router-dom": "6.28.2"
   },
   "devDependencies": {
     "@rollup/plugin-replace": "5.0.5",
@@ -82,6 +86,8 @@
     "rollup-plugin-visualizer": "5.12.0",
     "strip-css-comments": "5.0.0",
     "transform-ast": "2.4.4",
+    "@types/react": "18.3.12",
+    "@types/react-dom": "18.3.1",
     "typescript": "5.3.3",
     "vite": "5.1.7",
     "vite-plugin-checker": "0.6.4",
