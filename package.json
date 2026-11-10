@@ -4,6 +4,7 @@
   "type": "module",
   "dependencies": {
     "@polymer/polymer": "3.5.1",
+    "@remix-run/router": "1.21.1",
     "@vaadin/a11y-base": "24.3.11",
     "@vaadin/accordion": "24.3.11",
     "@vaadin/app-layout": "24.3.11",
@@ -70,7 +71,6 @@
     "construct-style-sheets-polyfill": "3.1.0",
     "date-fns": "2.29.3",
     "lit": "3.1.2",
-    "@remix-run/router": "1.21.1",
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-router-dom": "6.28.2"
@@ -78,6 +78,8 @@
   "devDependencies": {
     "@rollup/plugin-replace": "5.0.5",
     "@rollup/pluginutils": "5.1.0",
+    "@types/react": "18.3.12",
+    "@types/react-dom": "18.3.1",
     "@vitejs/plugin-react": "4.2.1",
     "@vitejs/plugin-react-swc": "3.5.0",
     "async": "3.2.4",
@@ -86,8 +88,6 @@
     "rollup-plugin-visualizer": "5.12.0",
     "strip-css-comments": "5.0.0",
     "transform-ast": "2.4.4",
-    "@types/react": "18.3.12",
-    "@types/react-dom": "18.3.1",
     "typescript": "5.3.3",
     "vite": "5.1.7",
     "vite-plugin-checker": "0.6.4",
@@ -162,7 +162,11 @@
     "lit": "$lit",
     "@polymer/polymer": "$@polymer/polymer",
     "@vaadin/vaadin-themable-mixin": "$@vaadin/vaadin-themable-mixin",
-    "date-fns": "$date-fns"
+    "date-fns": "$date-fns",
+    "@remix-run/router": "$@remix-run/router",
+    "react": "$react",
+    "react-dom": "$react-dom",
+    "react-router-dom": "$react-router-dom"
   },
   "vaadin": {
     "dependencies": {
@@ -252,6 +256,6 @@
       "workbox-core": "7.0.0",
       "workbox-precaching": "7.0.0"
     },
-    "hash": "747f5b901cf870f4eb9cc59c17526ce97f44eeecf65c05a089f8912797bd59aa"
+    "hash": "fe33add7fd922380d0af9235193f887b68744f9a9cbf8c626d6fc6d7747877be"
   }
 }

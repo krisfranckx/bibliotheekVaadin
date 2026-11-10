@@ -83,11 +83,20 @@ public class LK_UserList extends VerticalLayout {
         closeEditor();
     }
     private void deleteUser(UserForm.DeleteEvent event) {
-        Response response = userService.deleteUser(event.getUser());
-        String message = response.getMessage();
-        Notification.show(message, 5000, Notification.Position.TOP_CENTER);
-        updateGrid();
-        closeEditor();
+        try {
+            Response response = userService.deleteUser(event.getUser());
+            if (response == null || (response.getStatusCode() != null && response.getStatusCode() >= 400)) {
+                Notification.show("Gebruiker kon niet verwijderd worden.", 5000, Notification.Position.TOP_CENTER);
+                return;
+            }
+            Notification.show(response.getMessage() == null ? "Gebruiker verwijderd." : response.getMessage(),
+                    5000, Notification.Position.TOP_CENTER);
+            updateGrid();
+            closeEditor();
+        } catch (RuntimeException exception) {
+            Notification.show("Verwijderen mislukt: backend niet bereikbaar of gebruiker heeft nog gekoppelde items.",
+                    7000, Notification.Position.TOP_CENTER);
+        }
     }
 
     private Component getToolbar() {

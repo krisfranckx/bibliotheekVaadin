@@ -7,9 +7,14 @@ import com.example.Vaadin_REST_bib.restClasses.User;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasUrlParameter;
 import jakarta.annotation.security.RolesAllowed;
+import io.netty.channel.ChannelOption;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.netty.http.client.HttpClient;
+
+import java.time.Duration;
 
 @Service
 public class UserService implements HasUrlParameter<String> {
@@ -18,8 +23,12 @@ public class UserService implements HasUrlParameter<String> {
     private final WebClient webClient_register;
 
     public UserService(WebClient.Builder builder) {
-        webClient = builder.baseUrl(Settings.BASE_URL_BACK+"/admin/").build();
-        webClient_register = builder.baseUrl(Settings.BASE_URL_BACK+"/").build();
+        HttpClient httpClient = HttpClient.create()
+            .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10000)
+            .responseTimeout(Duration.ofSeconds(10));
+        ReactorClientHttpConnector connector = new ReactorClientHttpConnector(httpClient);
+        webClient = builder.baseUrl(Settings.BASE_URL_BACK+"/admin/").clientConnector(connector).build();
+        webClient_register = builder.baseUrl(Settings.BASE_URL_BACK+"/").clientConnector(connector).build();
     }
     public Response getUsers(String value){
 
