@@ -13,20 +13,26 @@ import java.io.IOException;
 public class CustomAuthSuccesHandler implements AuthenticationSuccessHandler {
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-        authentication.getAuthorities().forEach(authority->{
-            try {
-                if(authority.getAuthority().equals("ROLE_ADMIN")){
-                    response.sendRedirect("/ll/admin/books");
-                } else if (authority.getAuthority().equals("ROLE_USER")) {
-                    response.sendRedirect("/ll/books");
-                } else if (authority.getAuthority().equals("ROLE_LKADMIN")) {
-                    response.sendRedirect("/lk/admin/books");
-                }else if (authority.getAuthority().equals("ROLE_LK")) {
-                    response.sendRedirect("/lk/books");
-                }
-            }catch (IOException e){
-                e.printStackTrace();
-            }
-        });
+        String target = authentication.getAuthorities().stream()
+                .map(authority -> authority.getAuthority())
+                .filter(authority -> authority.equals("ROLE_ADMIN")
+                        || authority.equals("ROLE_USER")
+                        || authority.equals("ROLE_LKADMIN")
+                        || authority.equals("ROLE_LK"))
+                .findFirst()
+                .map(this::targetForAuthority)
+                .orElse("/login?error");
+
+        response.sendRedirect(target);
+    }
+
+    private String targetForAuthority(String authority) {
+        return switch (authority) {
+            case "ROLE_ADMIN" -> "/ll/admin/books";
+            case "ROLE_USER" -> "/ll/books";
+            case "ROLE_LKADMIN" -> "/lk/admin/books";
+            case "ROLE_LK" -> "/lk/books";
+            default -> "/login?error";
+        };
     }
 }

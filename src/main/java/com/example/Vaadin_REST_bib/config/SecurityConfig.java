@@ -13,11 +13,18 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 @Configuration
 public class SecurityConfig extends VaadinWebSecurity {
 
+    private final CustomAuthSuccesHandler customAuthSuccesHandler;
+
+    public SecurityConfig(CustomAuthSuccesHandler customAuthSuccesHandler) {
+        this.customAuthSuccesHandler = customAuthSuccesHandler;
+    }
+
     @Override
     public void configure(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.ignoringRequestMatchers(antMatchers(Settings.BASE_URL_BACK+"/admin/books")));
         super.configure(http);
         setLoginView(http, LoginView.class);
+        http.formLogin(form -> form.successHandler(customAuthSuccesHandler));
     }
 
   /*  @Bean
