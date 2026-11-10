@@ -1,4 +1,227 @@
 html {
-    --lumo-primary-color: green;
-    --lumo-font-family: 'Arial', sans-serif;
+    --brand-forest: #164b3f;
+    --brand-forest-dark: #10362e;
+    --brand-leaf: #b7cf45;
+    --brand-sun: #f2c94c;
+    --brand-coral: #d96855;
+    --brand-paper: #f4f7f2;
+    --lumo-primary-color: var(--brand-forest);
+    --lumo-primary-color-50pct: rgba(22, 75, 63, 0.5);
+    --lumo-primary-text-color: var(--brand-forest);
+    --lumo-success-color: #3b8f68;
+    --lumo-error-color: var(--brand-coral);
+    --lumo-base-color: var(--brand-paper);
+    --lumo-tint-5pct: rgba(255, 255, 255, 0.7);
+    --lumo-body-text-color: #20342f;
+    --lumo-header-text-color: var(--brand-forest-dark);
+    --lumo-font-family: 'Century Gothic', 'Trebuchet MS', sans-serif;
+    --lumo-border-radius-m: 0.65rem;
+    --lumo-border-radius-l: 0.9rem;
+}
+
+body {
+    background: var(--brand-paper);
+}
+
+vaadin-app-layout::part(navbar) {
+    background: var(--brand-forest);
+    box-shadow: 0 0.2rem 0.8rem rgba(16, 54, 46, 0.18);
+    min-height: 4.5rem;
+}
+
+vaadin-app-layout::part(drawer) {
+    background: var(--brand-forest-dark);
+    border-inline-end: 0;
+    color: var(--brand-paper);
+}
+
+vaadin-app-layout vaadin-router-link,
+vaadin-app-layout a {
+    color: var(--brand-paper);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+vaadin-app-layout vaadin-router-link:hover,
+vaadin-app-layout a:hover {
+    color: var(--brand-sun);
+}
+
+vaadin-app-layout vaadin-router-link vaadin-icon,
+vaadin-app-layout a vaadin-icon {
+    color: var(--brand-sun);
+}
+
+vaadin-app-layout::part(content) {
+    background:
+        linear-gradient(135deg, rgba(183, 207, 69, 0.08), transparent 28rem),
+        var(--brand-paper);
+}
+
+vaadin-app-layout h1 {
+    color: white;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    max-width: calc(100vw - 5rem);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+vaadin-drawer-toggle {
+    color: var(--brand-sun);
+}
+
+vaadin-button[theme~='primary'] {
+    box-shadow: 0 0.25rem 0.6rem rgba(22, 75, 63, 0.18);
+    font-weight: 700;
+}
+
+vaadin-button[theme~='error'] {
+    --lumo-error-color: var(--brand-coral);
+}
+
+vaadin-text-field,
+vaadin-combo-box,
+vaadin-date-picker,
+vaadin-password-field {
+    --lumo-contrast-10pct: rgba(22, 75, 63, 0.12);
+}
+
+vaadin-grid {
+    border: 1px solid rgba(22, 75, 63, 0.12);
+    border-radius: var(--lumo-border-radius-l);
+    box-shadow: 0 0.4rem 1.2rem rgba(16, 54, 46, 0.08);
+    overflow: hidden;
+}
+
+vaadin-grid::part(header-cell) {
+    background: #e5edc4;
+    color: var(--brand-forest-dark);
+    font-weight: 700;
+}
+
+vaadin-menu-bar {
+    --lumo-primary-text-color: white;
+}
+
+.dashboard-view {
+    max-width: 90rem;
+    margin: 0 auto;
+}
+
+.dashboard-cards {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    width: 100%;
+}
+
+.dashboard-card,
+.dashboard-warnings {
+    background: rgba(255, 255, 255, 0.86);
+    border: 1px solid rgba(22, 75, 63, 0.12);
+    border-radius: var(--lumo-border-radius-l);
+    box-shadow: 0 0.4rem 1.2rem rgba(16, 54, 46, 0.08);
+}
+
+.dashboard-card {
+    display: flex;
+    flex-direction: column;
+    min-height: 8.5rem;
+    padding: 1.15rem;
+}
+
+.dashboard-card-title {
+    color: var(--brand-forest);
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.dashboard-card-value {
+    color: var(--brand-forest-dark);
+    margin: 0.55rem 0 0.2rem;
+}
+
+.dashboard-card-detail,
+.dashboard-empty,
+.dashboard-warning-date {
+    color: #536660;
+    font-size: 0.9rem;
+}
+
+.dashboard-warnings {
+    padding: 1.25rem;
+    width: 100%;
+}
+
+.dashboard-warnings h3 {
+    color: var(--brand-forest-dark);
+    margin-top: 0;
+}
+
+.dashboard-warning {
+    align-items: center;
+    border-inline-start: 0.35rem solid var(--brand-sun);
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.75rem 0.9rem;
+}
+
+.dashboard-warning + .dashboard-warning {
+    border-top: 1px solid rgba(22, 75, 63, 0.1);
+}
+
+.dashboard-warning-overdue {
+    border-inline-start-color: var(--brand-coral);
+}
+
+.dashboard-warning-overdue .dashboard-warning-date {
+    color: var(--brand-coral);
+    font-weight: 700;
+}
+
+@media (max-width: 900px) {
+    .dashboard-cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 600px) {
+    .dashboard-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-warning {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+}
+
+.borrow-service-banner {
+    align-items: center;
+    background: var(--brand-forest);
+    border-radius: var(--lumo-border-radius-m);
+    box-shadow: 0 0.25rem 0.7rem rgba(16, 54, 46, 0.16);
+    color: white;
+    display: flex;
+    font-weight: 700;
+    justify-content: center;
+    min-height: 3rem;
+    padding: 0.75rem 1rem;
+}
+
+.borrow-service-banner {
+    align-items: center;
+    background: var(--lumo-primary-color);
+    color: white;
+    display: flex;
+    font-weight: 700;
+    justify-content: center;
+    min-height: 3rem;
+    padding: 0.75rem 1rem;
 }

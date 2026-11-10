@@ -83,7 +83,11 @@ public class BorrowServiceView extends VerticalLayout {
         btn_vrijgeven.setVisible(false);
         btn_vrijgeven.addClickListener(event->vrijgeven());
         HorizontalLayout hl_btns = new HorizontalLayout(btn_uitlenen, btn_reserveren, btn_inleveren, btn_vrijgeven);
-        add(splitLayout,hl_btns);
+        Span banner = new Span("We missen Kris Franckx");
+        banner.addClassName("borrow-service-banner");
+        banner.setWidthFull();
+        setFlexGrow(1, splitLayout);
+        add(splitLayout, hl_btns, banner);
     }
 
     private void vrijgeven() {
