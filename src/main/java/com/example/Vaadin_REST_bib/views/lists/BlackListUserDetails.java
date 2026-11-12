@@ -51,12 +51,15 @@ public class BlackListUserDetails extends Details {
         if (disabled) {
             reasons.add(items.size() >= MAX_ITEMS
                     ? String.format("Maximum van %s geleende items bereikt (%s geleend)", MAX_ITEMS, items.size())
-                    : "Uitlenen is uitgeschakeld");
+                    : "E-mail fout of niet bevestigd: gegevens nakijken");
         }
 
         H6 summary = new H6(String.join(" | ", reasons));
         setSummary(new VerticalLayout(new H5(user.getVoornaam() + " " + user.getFamilienaam()), summary));
         addThemeVariants(DetailsVariant.FILLED);
+        if (overdue > 0) {
+            getStyle().set("background-color", "rgba(217, 104, 85, 0.18)");
+        }
 
         Grid<LoanedItem> grid = new Grid<>();
         grid.addThemeVariants(GridVariant.LUMO_COMPACT, GridVariant.LUMO_NO_BORDER);
@@ -101,7 +104,13 @@ public class BlackListUserDetails extends Details {
         result.keySet().removeIf(u -> !userFilter.test(u));
         result.values().forEach(l -> l.sort(Comparator.comparing(LoanedItem::uitgeleendTot,
                 Comparator.nullsLast(Comparator.naturalOrder()))));
-        return result;
+
+        Map<User, List<LoanedItem>> sorted = new LinkedHashMap<>();
+        result.entrySet().stream()
+                .sorted(Comparator.comparing((Map.Entry<User, List<LoanedItem>> e) ->
+                        e.getValue().stream().noneMatch(LoanedItem::isOverdue)))
+                .forEach(e -> sorted.put(e.getKey(), e.getValue()));
+        return sorted;
     }
 
     private static void addItem(Map<User, List<LoanedItem>> map, User user, LoanedItem item) {

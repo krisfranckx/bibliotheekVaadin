@@ -73,6 +73,69 @@ vaadin-drawer-toggle {
     color: var(--brand-sun);
 }
 
+vaadin-app-layout [slot='drawer'] {
+    padding-top: 0.5rem;
+}
+
+vaadin-app-layout [slot='drawer'] vaadin-vertical-layout {
+    gap: 0.15rem;
+    padding: 0.5rem 0.75rem;
+}
+
+vaadin-app-layout [slot='drawer'] vaadin-horizontal-layout {
+    align-items: center;
+    border-radius: var(--lumo-border-radius-m);
+    gap: 0.75rem;
+    padding: 0 0.75rem;
+    transition: background 0.15s;
+    width: 100%;
+}
+
+vaadin-app-layout [slot='drawer'] vaadin-horizontal-layout a {
+    flex: 1;
+}
+
+vaadin-app-layout [slot='drawer'] a {
+    border-radius: var(--lumo-border-radius-m);
+    box-sizing: border-box;
+    display: block;
+    padding: 0.6rem 0;
+    transition: background 0.15s, color 0.15s;
+}
+
+vaadin-app-layout [slot='drawer'] > vaadin-vertical-layout > a {
+    padding: 0.6rem 0.75rem;
+    width: 100%;
+}
+
+vaadin-app-layout [slot='drawer'] vaadin-horizontal-layout:hover,
+vaadin-app-layout [slot='drawer'] > vaadin-vertical-layout > a:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+vaadin-app-layout [slot='drawer'] vaadin-horizontal-layout:has(a[highlight]),
+vaadin-app-layout [slot='drawer'] > vaadin-vertical-layout > a[highlight] {
+    background: rgba(183, 207, 69, 0.18);
+    box-shadow: inset 0.25rem 0 0 var(--brand-leaf);
+}
+
+vaadin-app-layout [slot='drawer'] hr {
+    background: rgba(244, 247, 242, 0.25);
+    border: 0;
+    height: 1px;
+    margin: 0.75rem 0.25rem;
+    width: calc(100% - 0.5rem);
+}
+
+vaadin-menu-bar-button,
+vaadin-menu-bar-button h4 {
+    color: white;
+}
+
+vaadin-menu-bar-button h4 {
+    margin: 0;
+}
+
 vaadin-button[theme~='primary'] {
     box-shadow: 0 0.25rem 0.6rem rgba(22, 75, 63, 0.18);
     font-weight: 700;
