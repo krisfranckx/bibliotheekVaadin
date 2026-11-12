@@ -11,6 +11,7 @@ import com.example.Vaadin_REST_bib.services.MagazineService;
 import com.example.Vaadin_REST_bib.services.UserService;
 import com.example.Vaadin_REST_bib.views.ADMIN_LK_MainLayout;
 import com.example.Vaadin_REST_bib.views.ADMIN_LL_MainLayout;
+import com.example.Vaadin_REST_bib.views.lists.BlackListUserDetails;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.details.DetailsVariant;
@@ -60,35 +61,15 @@ public class LK_BlackList extends VerticalLayout {
         this.add(filterText);
         filterText.focus();
 
-        Set<User> userList = new HashSet<>();
-        List<Book> bookList = new ArrayList<>();
-        List<Magazine> magazineList = new ArrayList<>();
-        List<LKBook> lkbookList = new ArrayList<>();
-        bookList = bookService.getBooksBorrowed("").getData().getBooksAllWithFilter().stream().filter(b->b.getUitgeleendTot()!=null && b.getUitgeleendTot().isBefore(LocalDate.now())).toList();
-        magazineList = magazineService.getMagazines("").getData().getMagazines().stream().filter(b->b.getUitgeleendTot()!=null && b.getUitgeleendTot().isBefore(LocalDate.now())).toList();
-        lkbookList = lkbookService.getBooks("").getData().getLKBooksAllWithFilter().stream().filter(b->b.getUitgeleendTot()!=null && b.getUitgeleendTot().isBefore(LocalDate.now())).toList();
+        List<Book> bookList = bookService.getBooksBorrowed("").getData().getBooksAllWithFilter();
+        List<Magazine> magazineList = magazineService.getMagazines("").getData().getMagazines();
+        List<LKBook> lkbookList = lkbookService.getBooks("").getData().getLKBooksAllWithFilter();
+        List<User> users = userService.getUsers("").getData().getUsers();
 
-        bookList.forEach(book -> {
-            if (book.getGeleendDoor().getAuth().contains("LK")){
-                userList.add(book.getGeleendDoor());
-            }
-        });
-        magazineList.forEach(magazine -> {
-                    if (magazine.getGeleendDoor().getAuth().contains("LK")) {
-                        userList.add(magazine.getGeleendDoor());
-                    }
-                }
-        );
-        lkbookList.forEach(book -> {
-            if (book.getGeleendDoor().getAuth().contains("LK")){
-                userList.add(book.getGeleendDoor());
-            }
-        });
-        userList.forEach(u->{
-            H6 h6 = new H6(String.format("%s\t\titem(s) geleend",u.getAantalItemsGeleend()));
-            Details userDetails = new Details(new H5(u.getVoornaam()+" "+u.getFamilienaam()), h6);
-            userDetails.addThemeVariants(DetailsVariant.FILLED);
-            add(userDetails);
-        });
+        String filter = filterText.getValue() == null ? "" : filterText.getValue().trim().toLowerCase();
+        BlackListUserDetails.blackListedUsers(users, bookList, magazineList, lkbookList,
+                u -> u.getAuth() != null && u.getAuth().contains("LK")
+                        && (u.getVoornaam() + " " + u.getFamilienaam()).toLowerCase().contains(filter))
+                .forEach((u, items) -> add(new BlackListUserDetails(u, items)));
     }
 }

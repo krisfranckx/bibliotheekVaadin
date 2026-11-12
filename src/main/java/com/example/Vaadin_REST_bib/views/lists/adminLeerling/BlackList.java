@@ -10,6 +10,7 @@ import com.example.Vaadin_REST_bib.services.LKBookService;
 import com.example.Vaadin_REST_bib.services.MagazineService;
 import com.example.Vaadin_REST_bib.services.UserService;
 import com.example.Vaadin_REST_bib.views.ADMIN_LL_MainLayout;
+import com.example.Vaadin_REST_bib.views.lists.BlackListUserDetails;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.details.DetailsVariant;
@@ -56,20 +57,15 @@ public class BlackList extends VerticalLayout {
         this.add(filterText);
         filterText.focus();
 
-        Set<User> userList = new HashSet<>();
-        List<Book> bookList = bookService.getBooksBorrowed("").getData().getBooksAllWithFilter().stream().filter(b->b.getUitgeleendTot()!=null && b.getUitgeleendTot().isBefore(LocalDate.now())).toList();
-        List<Magazine> magazineList = magazineService.getMagazines("").getData().getMagazines().stream().filter(b->b.getUitgeleendTot()!=null && b.getUitgeleendTot().isBefore(LocalDate.now())).toList();
-        List<LKBook> lkbookList = lkbookService.getBooks("").getData().getLKBooksAllWithFilter().stream().filter(b->b.getUitgeleendTot()!=null && b.getUitgeleendTot().isBefore(LocalDate.now())).toList();
+        List<Book> bookList = bookService.getBooksBorrowed("").getData().getBooksAllWithFilter();
+        List<Magazine> magazineList = magazineService.getMagazines("").getData().getMagazines();
+        List<LKBook> lkbookList = lkbookService.getBooks("").getData().getLKBooksAllWithFilter();
+        List<User> users = userService.getUsers("").getData().getUsers();
 
-        bookList.forEach(book -> userList.add(book.getGeleendDoor()));
-        magazineList.forEach(magazine -> userList.add(magazine.getGeleendDoor()));
-        lkbookList.forEach(book -> userList.add(book.getGeleendDoor()));
-        userList.forEach(u->{
-            H6 h6 = new H6(String.format("%s\t\t%s geleend",u.getAantalItemsGeleend(), u.getAantalItemsGeleend()>1?"items":"item"));
-            Details userDetails = new Details(new H5(u.getVoornaam()+" "+u.getFamilienaam()), h6);
-            userDetails.addThemeVariants(DetailsVariant.FILLED);
-            add(userDetails);
-        });
+        String filter = filterText.getValue() == null ? "" : filterText.getValue().trim().toLowerCase();
+        BlackListUserDetails.blackListedUsers(users, bookList, magazineList, lkbookList,
+                u -> (u.getVoornaam() + " " + u.getFamilienaam()).toLowerCase().contains(filter))
+                .forEach((u, items) -> add(new BlackListUserDetails(u, items)));
     }
 
 
