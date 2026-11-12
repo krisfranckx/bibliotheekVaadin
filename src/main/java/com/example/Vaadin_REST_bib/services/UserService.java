@@ -21,18 +21,21 @@ public class UserService implements HasUrlParameter<String> {
 
     private final WebClient webClient;
     private final WebClient webClient_register;
+    private final ResponseCache cache;
 
-    public UserService(WebClient.Builder builder) {
+    public UserService(WebClient.Builder builder, ResponseCache cache) {
+        this.cache = cache;
         HttpClient httpClient = HttpClient.create()
             .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10000)
             .responseTimeout(Duration.ofSeconds(10));
         ReactorClientHttpConnector connector = new ReactorClientHttpConnector(httpClient);
+        builder.filter(cache.invalidateOnWrite());
         webClient = builder.baseUrl(Settings.BASE_URL_BACK+"/admin/").clientConnector(connector).build();
         webClient_register = builder.baseUrl(Settings.BASE_URL_BACK+"/").clientConnector(connector).build();
     }
     public Response getUsers(String value){
 
-       return webClient.get().uri("/users?filter="+value).retrieve().bodyToMono(Response.class).block();
+       return cache.get("user:all", value, () -> webClient.get().uri("/users?filter="+value).retrieve().bodyToMono(Response.class).block());
     }
     public Response getUser(Integer value){
         return webClient.get().uri(String.format("/users/%d",value)).retrieve().bodyToMono(Response.class).block();

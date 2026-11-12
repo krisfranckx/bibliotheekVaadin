@@ -15,9 +15,11 @@ import reactor.core.publisher.Flux;
 public class BookService implements HasUrlParameter<String> {
 
     private final WebClient webClient;
+    private final ResponseCache cache;
 
-    public BookService(WebClient.Builder builder) {
-        webClient = builder.baseUrl(Settings.BASE_URL_BACK+"/admin/").build();
+    public BookService(WebClient.Builder builder, ResponseCache cache) {
+        this.cache = cache;
+        webClient = builder.baseUrl(Settings.BASE_URL_BACK+"/admin/").filter(cache.invalidateOnWrite()).build();
     }
 
     public Response getBooks(String value){
@@ -29,7 +31,7 @@ public class BookService implements HasUrlParameter<String> {
     }
 
     public Response getBooksBorrowed(String value){
-        return webClient.get().uri("/books/borrowed?borrowed=true&filter="+value).retrieve().bodyToMono(Response.class).block();
+        return cache.get("book:borrowed", value, () -> webClient.get().uri("/books/borrowed?borrowed=true&filter="+value).retrieve().bodyToMono(Response.class).block());
     }
 
 
@@ -51,7 +53,7 @@ public class BookService implements HasUrlParameter<String> {
     }
     public int countBooks() {
         //return getBooks("").getData().getnumberofBooksWithFilter();
-        return webClient.get().uri("/books/count").retrieve().bodyToMono(Integer.class).block();
+        return cache.get("book:count", "", () -> webClient.get().uri("/books/count").retrieve().bodyToMono(Integer.class).block());
     }
     public Response borrowBook(Book book, User user) {
         return webClient.get().uri(String.format("/books/%d/lenen/%d",book.getBoekId(),user.getId())).retrieve().bodyToMono(Response.class).block();

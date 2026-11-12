@@ -199,8 +199,10 @@ public class LK_BorrowServiceView extends VerticalLayout {
 */
 
         userList.forEach(u->{
-            u.setEnabledUI(false);
-            userService.saveUser(u);
+            if (u != null && !Boolean.FALSE.equals(u.getEnabledUI())) {
+                u.setEnabledUI(false);
+                userService.saveUser(u);
+            }
         });
     }
     private void configureItemGrid() {

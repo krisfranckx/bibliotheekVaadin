@@ -24,13 +24,15 @@ import org.springframework.data.domain.Sort;
 public class LKBookService implements HasUrlParameter<String> {
 
     private final WebClient webClient;
+    private final ResponseCache cache;
 
-    public LKBookService(WebClient.Builder builder) {
-        webClient = builder.baseUrl(Settings.BASE_URL_BACK+"/lkadmin/").build();
+    public LKBookService(WebClient.Builder builder, ResponseCache cache) {
+        this.cache = cache;
+        webClient = builder.baseUrl(Settings.BASE_URL_BACK+"/lkadmin/").filter(cache.invalidateOnWrite()).build();
     }
 
     public Response getBooks(String value){
-       return webClient.get().uri("/books?filter="+value).retrieve().bodyToMono(Response.class).block();
+       return cache.get("lkbook:all", value, () -> webClient.get().uri("/books?filter="+value).retrieve().bodyToMono(Response.class).block());
     }
     public Response getBook(Integer boekId) {
         return webClient.get().uri("/books/"+boekId).retrieve().bodyToMono(Response.class).block();
@@ -48,7 +50,7 @@ public class LKBookService implements HasUrlParameter<String> {
         return webClient.delete().uri("/books/"+book.getBoekId()).retrieve().bodyToMono(Response.class).block();
     }
     public int countBooks() {
-        return webClient.get().uri("/books/count").retrieve().bodyToMono(Integer.class).block();
+        return cache.get("lkbook:count", "", () -> webClient.get().uri("/books/count").retrieve().bodyToMono(Integer.class).block());
     }
     public Response borrowBook(LKBook book, User user) {
         return webClient.get().uri(String.format("/books/%d/lenen/%d",book.getBoekId(),user.getId())).retrieve().bodyToMono(Response.class).block();

@@ -15,12 +15,14 @@ import org.springframework.web.reactive.function.client.WebClient;
 public class MagazineService implements HasUrlParameter<String> {
 
     private final WebClient webClient;
+    private final ResponseCache cache;
 
-    public MagazineService(WebClient.Builder builder) {
-        webClient = builder.baseUrl(Settings.BASE_URL_BACK+"/admin/").build();
+    public MagazineService(WebClient.Builder builder, ResponseCache cache) {
+        this.cache = cache;
+        webClient = builder.baseUrl(Settings.BASE_URL_BACK+"/admin/").filter(cache.invalidateOnWrite()).build();
     }
     public Response getMagazines(String value){
-       return webClient.get().uri("/magazines?filter="+value).retrieve().bodyToMono(Response.class).block();
+       return cache.get("magazine:all", value, () -> webClient.get().uri("/magazines?filter="+value).retrieve().bodyToMono(Response.class).block());
     }
     public Response getMagazine(Integer magazineId) {
         return webClient.get().uri("/magazines/"+magazineId).retrieve().bodyToMono(Response.class).block();

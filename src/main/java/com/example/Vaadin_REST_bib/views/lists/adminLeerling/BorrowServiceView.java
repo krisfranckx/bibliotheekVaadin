@@ -198,8 +198,10 @@ public class BorrowServiceView extends VerticalLayout {
         bookList.stream().forEach(book -> userList.add(book.getGeleendDoor()));
         magazineList.stream().forEach(magazine -> userList.add(magazine.getGeleendDoor()));
         userList.forEach(u->{
-            u.setEnabledUI(false);
-            userService.saveUser(u);
+            if (u != null && !Boolean.FALSE.equals(u.getEnabledUI())) {
+                u.setEnabledUI(false);
+                userService.saveUser(u);
+            }
         });
     }
     private void configureItemGrid() {

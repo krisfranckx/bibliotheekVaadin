@@ -21,6 +21,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @Route(value = "dashboard", layout = ADMIN_LL_MainLayout.class)
 @PageTitle("BIB | Dashboard")
@@ -106,8 +107,14 @@ public class DashboardView extends VerticalLayout {
     }
 
     private DashboardData loadDashboardData() {
-        List<Book> borrowedBooks = loadBorrowedBooks();
-        List<Magazine> borrowedMagazines = loadBorrowedMagazines();
+        CompletableFuture<List<Book>> booksFuture = CompletableFuture.supplyAsync(this::loadBorrowedBooks);
+        CompletableFuture<List<Magazine>> magazinesFuture = CompletableFuture.supplyAsync(this::loadBorrowedMagazines);
+        CompletableFuture<Integer> bookCount = CompletableFuture.supplyAsync(() -> safeCount(() -> bookService.countBooks()));
+        CompletableFuture<Integer> userCount = CompletableFuture.supplyAsync(() -> safeCount(() -> userService.countUsers()));
+        CompletableFuture<Integer> magazineCount = CompletableFuture.supplyAsync(() -> safeCount(() -> magazineService.countMagazines()));
+
+        List<Book> borrowedBooks = booksFuture.join();
+        List<Magazine> borrowedMagazines = magazinesFuture.join();
         List<LoanWarning> warnings = new ArrayList<>();
         LocalDate today = LocalDate.now();
         LocalDate dueSoonLimit = today.plusDays(7);
@@ -119,9 +126,9 @@ public class DashboardView extends VerticalLayout {
         warnings.sort(Comparator.comparing(LoanWarning::dueDate));
 
         return new DashboardData(
-                safeCount(() -> bookService.countBooks()),
-                safeCount(() -> userService.countUsers()),
-                safeCount(() -> magazineService.countMagazines()),
+                bookCount.join(),
+                userCount.join(),
+                magazineCount.join(),
                 borrowedBooks,
                 borrowedMagazines,
                 warnings
