@@ -15,6 +15,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 @JsonPropertyOrder({
     "type",
     "titel",
+    "barcode",
     "code",
     "uitgeleend",
     "geleendDoor",
@@ -34,6 +35,8 @@ public class Book extends BibItem{
     private String type;
     @JsonProperty("titel")
     private String titel;
+    @JsonProperty("barcode")
+    private String barcode;
     @JsonProperty("code")
     private String code;
     @JsonProperty("uitgeleend")
@@ -81,6 +84,16 @@ public class Book extends BibItem{
     @JsonProperty("titel")
     public void setTitel(String titel) {
         this.titel = titel;
+    }
+
+    @JsonProperty("barcode")
+    public String getBarcode() {
+        return barcode;
+    }
+
+    @JsonProperty("barcode")
+    public void setBarcode(String barcode) {
+        this.barcode = barcode;
     }
 
     @JsonProperty("code")

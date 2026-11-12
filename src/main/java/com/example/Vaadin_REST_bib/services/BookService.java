@@ -39,6 +39,14 @@ public class BookService implements HasUrlParameter<String> {
     public Response getBook(Integer boekId) {
         return webClient.get().uri("/books/"+boekId).retrieve().bodyToMono(Response.class).block();
     }
+
+    public Response getBookMetadataByBarcode(String barcode) {
+        return webClient.get()
+                .uri(uriBuilder -> uriBuilder.path("/books/barcode/{barcode}/metadata").build(barcode))
+                .retrieve()
+                .bodyToMono(Response.class)
+                .block();
+    }
     @Override
     public void setParameter(BeforeEvent beforeEvent, String s) {
     }

@@ -87,7 +87,7 @@ public class BookList extends VerticalLayout {
     }
 
     private void configureBookform() {
-        bookForm = new BookForm();
+        bookForm = new BookForm(bookService);
         bookForm.setWidth("25em");
         bookForm.addListener(BookForm.SaveEvent.class,this::saveBook);
         bookForm.addListener(BookForm.DeleteEvent.class,this::deleteBook);

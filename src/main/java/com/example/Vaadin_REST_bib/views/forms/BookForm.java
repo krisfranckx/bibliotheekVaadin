@@ -1,15 +1,19 @@
 package com.example.Vaadin_REST_bib.views.forms;
 
 import com.example.Vaadin_REST_bib.restClasses.Book;
+import com.example.Vaadin_REST_bib.restClasses.Response;
+import com.example.Vaadin_REST_bib.services.BookService;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentEvent;
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.Key;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.IntegerField;
@@ -25,6 +29,7 @@ public class BookForm extends FormLayout {
     Binder<Book> binder = new BeanValidationBinder<>(Book.class);
     TextField titel = new TextField("Titel");
     TextField auteur = new TextField("Auteur");
+    TextField barcode = new TextField("Barcode / ISBN");
     ComboBox<String> taal = new ComboBox<>("Taal");
     ComboBox<String> graad = new ComboBox<>("Graad");
     ComboBox<String> fictieNonFictie = new ComboBox<>("Fictie / non-Fictie");
@@ -32,10 +37,13 @@ public class BookForm extends FormLayout {
     Button btnSave = new Button("Save");
     Button btnDelete = new Button("Delete");
     Button btnCancel = new Button("Cancel");
+    Button btnScan = new Button("Scan met camera");
     private Book book;
+    private final BookService bookService;
 
 
-    public BookForm() {
+    public BookForm(BookService bookService) {
+        this.bookService = bookService;
         addClassName("book-form");
         binder.bindInstanceFields(this); //lukt omdat attributen hier dezelfde naam hebben als in de klasse Book
         taal.setItems("Frans","Engels", "algemeen");
@@ -54,7 +62,8 @@ public class BookForm extends FormLayout {
         numberOfBooks.setHelperText("Max 20");
         numberOfBooks.setVisible(false);
 
-        add(titel, auteur, taal, graad, fictieNonFictie, numberOfBooks,creatBtnLayout());
+        btnScan.addClickListener(event -> scanBarcode());
+        add(barcode, btnScan, titel, auteur, taal, graad, fictieNonFictie, numberOfBooks,creatBtnLayout());
     }
 
     public void setBook(Book book){
@@ -76,6 +85,81 @@ public class BookForm extends FormLayout {
 
         HorizontalLayout btn_row1 = new HorizontalLayout(btnSave, btnDelete, btnCancel);
         return new VerticalLayout(btn_row1);
+    }
+
+    private void scanBarcode() {
+        UI.getCurrent().getPage().executeJs("""
+                return (async () => {
+                    if (typeof BarcodeDetector === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
+                        return 'UNSUPPORTED';
+                    }
+                    const video = document.createElement('video');
+                    video.setAttribute('playsinline', '');
+                    video.style.position = 'fixed';
+                    video.style.inset = '10% 10% auto 10%';
+                    video.style.width = '80%';
+                    video.style.zIndex = '9999';
+                    document.body.appendChild(video);
+                    let stream;
+                    try {
+                        const detector = new BarcodeDetector({
+                            formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128']
+                        });
+                        stream = await navigator.mediaDevices.getUserMedia({
+                            video: { facingMode: { ideal: 'environment' } }
+                        });
+                        video.srcObject = stream;
+                        await video.play();
+                        return await new Promise(resolve => {
+                            const detect = async () => {
+                                try {
+                                    const codes = await detector.detect(video);
+                                    if (codes.length > 0) {
+                                        resolve(codes[0].rawValue);
+                                        return;
+                                    }
+                                    requestAnimationFrame(detect);
+                                } catch (error) {
+                                    resolve('ERROR');
+                                }
+                            };
+                            detect();
+                        });
+                    } catch (error) {
+                        return 'ERROR';
+                    } finally {
+                        stream?.getTracks().forEach(track => track.stop());
+                        video.remove();
+                    }
+                })();
+                """).then(String.class, this::handleScannedBarcode);
+    }
+
+    private void handleScannedBarcode(String scannedBarcode) {
+        if (scannedBarcode == null || scannedBarcode.equals("ERROR")) {
+            Notification.show("De barcode kon niet worden gelezen.");
+            return;
+        }
+        if (scannedBarcode.equals("UNSUPPORTED")) {
+            Notification.show("Deze browser ondersteunt geen camerascan. Typ de barcode handmatig.");
+            return;
+        }
+
+        barcode.setValue(scannedBarcode);
+        Response response = bookService.getBookMetadataByBarcode(scannedBarcode);
+        if (response == null || response.getData() == null || response.getData().getBook() == null) {
+            Notification.show("Geen boekmetadata gevonden. Vul de gegevens handmatig aan.");
+            return;
+        }
+
+        Book metadata = response.getData().getBook();
+        if (metadata.getTitel() != null) {
+            titel.setValue(metadata.getTitel());
+        }
+        if (metadata.getAuteur() != null) {
+            auteur.setValue(metadata.getAuteur());
+        }
+        Notification.show("Boekgegevens opgehaald.");
     }
 
     private void validateAndSave() {
