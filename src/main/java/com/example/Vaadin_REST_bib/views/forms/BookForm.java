@@ -166,7 +166,13 @@ public class BookForm extends FormLayout {
             return;
         }
 
-        Response response = bookService.getBookMetadataByBarcode(scannedBarcode);
+        Response response;
+        try {
+            response = bookService.getBookMetadataByBarcode(scannedBarcode);
+        } catch (RuntimeException exception) {
+            Notification.show("Boekmetadata kon niet worden opgehaald. Controleer of de backend gedeployed is.");
+            return;
+        }
         if (response == null || response.getData() == null || response.getData().getBook() == null) {
             Notification.show("Geen boekmetadata gevonden. Vul de gegevens handmatig aan.");
             return;
