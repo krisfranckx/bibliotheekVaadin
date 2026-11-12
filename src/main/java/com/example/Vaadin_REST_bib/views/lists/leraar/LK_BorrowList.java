@@ -37,6 +37,10 @@ public class LK_BorrowList extends VerticalLayout {
     private final LKBookService lkBookService;
     private final MagazineService magazineService;
     TextField filterText = new TextField();
+    private User user;
+    private List<Book> allBooks = new ArrayList<>();
+    private List<LKBook> allLkBooks = new ArrayList<>();
+    private List<Magazine> allMagazines = new ArrayList<>();
 
 
     public LK_BorrowList(UserService userService, BookService bookService, MagazineService magazineService, LKBookService lkBookService) {
@@ -48,22 +52,32 @@ public class LK_BorrowList extends VerticalLayout {
         filterText.setPlaceholder("filter op naam");
         filterText.setClearButtonVisible(true);
         filterText.setValueChangeMode(ValueChangeMode.LAZY);
+        filterText.setValueChangeTimeout(150);
         filterText.addValueChangeListener(e->updateDetails());
         add(filterText);
         getToolbar();
-        updateDetails();
+        reload();
 
     }
 
-    private void updateDetails() {
-        this.removeAll();
-        this.add(filterText);  // dubbel?
-        filterText.focus();
-        User user = userService.getUserByEmail(SecurityContextHolder.getContext().getAuthentication().getName()).getData().getsecurityUser().get();
-        List<Book> bookList = bookService.getBooksBorrowed(filterText.getValue()).getData().getBooksAllWithFilter().stream().filter(b->b.getGeleendDoor()!=null).toList();
-        List<LKBook> lkbookList = lkBookService.getBooks(filterText.getValue()).getData().getLKBooksAllWithFilter().stream().filter(b->b.getGeleendDoor()!=null).toList();
+    private void reload() {
+        user = userService.getUserByEmail(SecurityContextHolder.getContext().getAuthentication().getName()).getData().getsecurityUser().get();
+        allBooks = bookService.getBooksBorrowed("").getData().getBooksAllWithFilter().stream().filter(b->b.getGeleendDoor()!=null).toList();
+        allLkBooks = lkBookService.getBooks("").getData().getLKBooksAllWithFilter().stream().filter(b->b.getGeleendDoor()!=null).toList();
+        allMagazines = magazineService.getMagazines("").getData().getMagazines().stream().filter(b->b.getGeleendDoor()!=null).toList();
+        updateDetails();
+    }
 
-        List<Magazine> magazineList = magazineService.getMagazines("").getData().getMagazines().stream().filter(b->b.getGeleendDoor()!=null).toList();
+    private boolean matches(String titel) {
+        String filter = filterText.getValue() == null ? "" : filterText.getValue().trim().toLowerCase();
+        return Objects.toString(titel, "").toLowerCase().contains(filter);
+    }
+
+    private void updateDetails() {
+        getChildren().filter(c -> c != filterText).toList().forEach(this::remove);
+        List<Book> bookList = allBooks.stream().filter(b -> matches(b.getTitel())).toList();
+        List<LKBook> lkbookList = allLkBooks.stream().filter(b -> matches(b.getTitel())).toList();
+        List<Magazine> magazineList = allMagazines.stream().filter(m -> matches(m.getTitel())).toList();
         List<Book> userBookList=new ArrayList<>();
             for (Book book:bookList) {
                 if (Objects.equals(book.getGeleendDoor().getEmail(), user.getEmail())){

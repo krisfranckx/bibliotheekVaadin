@@ -187,6 +187,7 @@ public class BorrowServiceView extends VerticalLayout {
         filterUser.setPlaceholder("filter user");
         filterUser.setClearButtonVisible(true);
         filterUser.setValueChangeMode(ValueChangeMode.LAZY);
+        filterUser.setValueChangeTimeout(200);
         filterUser.addValueChangeListener(e->updateGridUsers());
         vl_users.add(filterUser,userGrid);
     }
@@ -240,6 +241,7 @@ public class BorrowServiceView extends VerticalLayout {
         filterItem.setPlaceholder("filter boek");
         filterItem.setClearButtonVisible(true);
         filterItem.setValueChangeMode(ValueChangeMode.LAZY);
+        filterItem.setValueChangeTimeout(200);
         filterItem.addValueChangeListener(e-> {
             if (item.getValue().toString().equalsIgnoreCase("boeken")){
                 updateGridBooks();

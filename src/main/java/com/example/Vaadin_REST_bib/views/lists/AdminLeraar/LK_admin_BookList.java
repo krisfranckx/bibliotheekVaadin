@@ -128,6 +128,7 @@ public class LK_admin_BookList extends VerticalLayout {
         filterText.setPlaceholder("filter");
         filterText.setClearButtonVisible(true);
         filterText.setValueChangeMode(ValueChangeMode.LAZY);
+        filterText.setValueChangeTimeout(200);
         //filterText.addValueChangeListener(e->updateGrid());
         filterText.addValueChangeListener(e->updateGridDataProvider());
         Button btn_boekToevoegen = new Button("Boek toevoegen");

@@ -55,6 +55,7 @@ public class LLMagazineList extends VerticalLayout {
         filterText.setPlaceholder("filter");
         filterText.setClearButtonVisible(true);
         filterText.setValueChangeMode(ValueChangeMode.LAZY);
+        filterText.setValueChangeTimeout(200);
         filterText.addValueChangeListener(e->updateGrid());
         HorizontalLayout toolbar = new HorizontalLayout(filterText);
         toolbar.addClassName("toolbar");

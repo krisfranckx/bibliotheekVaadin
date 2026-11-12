@@ -182,6 +182,7 @@ public class LK_BorrowServiceView extends VerticalLayout {
         filterUser.setPlaceholder("filter gebruiker");
         filterUser.setClearButtonVisible(true);
         filterUser.setValueChangeMode(ValueChangeMode.LAZY);
+        filterUser.setValueChangeTimeout(200);
         filterUser.addValueChangeListener(e->updateGridUsers());
         vl_users.add(filterUser,userGrid);
     }
@@ -241,6 +242,7 @@ public class LK_BorrowServiceView extends VerticalLayout {
         filterItem.setPlaceholder("filter boek");
         filterItem.setClearButtonVisible(true);
         filterItem.setValueChangeMode(ValueChangeMode.LAZY);
+        filterItem.setValueChangeTimeout(200);
         filterItem.addValueChangeListener(e->changeGrid());
     }
     private void changeGridEraseFilter() {

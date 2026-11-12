@@ -70,6 +70,7 @@ public class LKBookList extends VerticalLayout {
         filterText.setPlaceholder("filter");
         filterText.setClearButtonVisible(true);
         filterText.setValueChangeMode(ValueChangeMode.LAZY);
+        filterText.setValueChangeTimeout(200);
         //filterText.addValueChangeListener(e->updateGrid());
         filterText.addValueChangeListener(e->updateGridDataProvider());
 

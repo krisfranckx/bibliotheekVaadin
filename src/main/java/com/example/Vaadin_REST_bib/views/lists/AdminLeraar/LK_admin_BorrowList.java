@@ -28,6 +28,9 @@ public class LK_admin_BorrowList extends VerticalLayout {
     private final LKBookService bookService;
     private final MagazineService magazineService;
     TextField filterText = new TextField();
+    private List<User> allUsers = new ArrayList<>();
+    private List<LKBook> allBooks = new ArrayList<>();
+    private List<Magazine> allMagazines = new ArrayList<>();
 
 
     public LK_admin_BorrowList(UserService userService, LKBookService bookService, MagazineService magazineService) {
@@ -38,18 +41,26 @@ public class LK_admin_BorrowList extends VerticalLayout {
         filterText.setPlaceholder("filter op naam");
         filterText.setClearButtonVisible(true);
         filterText.setValueChangeMode(ValueChangeMode.LAZY);
+        filterText.setValueChangeTimeout(150);
         filterText.addValueChangeListener(e->updateDetails());
+        add(filterText);
 
+        reload();
+    }
+
+    private void reload() {
+        allUsers = userService.getUsers("").getData().getUsers().stream().filter(u->u.getAantalItemsGeleend()>0).filter(u->u.getAuth().contains("LK")).toList();
+        allBooks = bookService.getBooks("").getData().getLKBooksAllWithFilter().stream().filter(b->b.getGeleendDoor()!=null).toList();
+        allMagazines = magazineService.getMagazines("").getData().getMagazines().stream().filter(b->b.getGeleendDoor()!=null).toList();
         updateDetails();
     }
 
     private void updateDetails() {
-        this.removeAll();
-        this.add(filterText);
-        filterText.focus();
-        List<User> userList = userService.getUsers(filterText.getValue()).getData().getUsers().stream().filter(u->u.getAantalItemsGeleend()>0).filter(u->u.getAuth().contains("LK")).toList();
-        List<LKBook> bookList = bookService.getBooks("").getData().getLKBooksAllWithFilter().stream().filter(b->b.getGeleendDoor()!=null).toList();
-        List<Magazine> magazineList = magazineService.getMagazines("").getData().getMagazines().stream().filter(b->b.getGeleendDoor()!=null).toList();
+        getChildren().filter(c -> c != filterText).toList().forEach(this::remove);
+        String filter = filterText.getValue() == null ? "" : filterText.getValue().trim().toLowerCase();
+        List<User> userList = allUsers.stream().filter(u -> (u.getVoornaam() + " " + u.getFamilienaam()).toLowerCase().contains(filter)).toList();
+        List<LKBook> bookList = allBooks;
+        List<Magazine> magazineList = allMagazines;
         userList.forEach(u->{
             List<BorrowedItem> items = new ArrayList<>();
             for (LKBook book : bookList) {
@@ -77,26 +88,26 @@ public class LK_admin_BorrowList extends VerticalLayout {
         Response response = magazineService.increaseBorrowMagazine(magazine);
         String message = response.getMessage();
         Notification.show(message, 5000, Notification.Position.TOP_CENTER);
-        updateDetails();
+        reload();
     }
     private void increaseBorrowBook(LKBook book){
         Response response = bookService.increaseBorrowBook(book);
         String message = response.getMessage();
         Notification.show(message, 5000, Notification.Position.TOP_CENTER);
-        updateDetails();
+        reload();
 
     }
     private void bringBackBook(LKBook book, User user){
         Response response = bookService.bringBackBook(book, user);
         String message = response.getMessage();
         Notification.show(message, 5000, Notification.Position.TOP_CENTER);
-        updateDetails();
+        reload();
     }
     private void bringBackMagazine(Magazine magazine, User user){
         Response response = magazineService.bringBackMagazine(magazine, user);
         String message = response.getMessage();
         Notification.show(message, 5000, Notification.Position.TOP_CENTER);
-        updateDetails();
+        reload();
     }
 
 }

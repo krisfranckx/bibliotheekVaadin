@@ -40,6 +40,10 @@ public class LK_BlackList extends VerticalLayout {
     private final MagazineService magazineService;
 
     TextField filterText = new TextField();
+    private List<Book> allBooks = new ArrayList<>();
+    private List<Magazine> allMagazines = new ArrayList<>();
+    private List<LKBook> allLkBooks = new ArrayList<>();
+    private List<User> allUsers = new ArrayList<>();
 
 
     public LK_BlackList(UserService userService, BookService bookService, MagazineService magazineService, LKBookService lkBookService) {
@@ -51,20 +55,26 @@ public class LK_BlackList extends VerticalLayout {
         filterText.setPlaceholder("filter op naam");
         filterText.setClearButtonVisible(true);
         filterText.setValueChangeMode(ValueChangeMode.LAZY);
+        filterText.setValueChangeTimeout(150);
         filterText.addValueChangeListener(e->updateDetails());
+        add(filterText);
+        reload();
+    }
+
+    private void reload() {
+        allBooks = bookService.getBooksBorrowed("").getData().getBooksAllWithFilter();
+        allMagazines = magazineService.getMagazines("").getData().getMagazines();
+        allLkBooks = lkbookService.getBooks("").getData().getLKBooksAllWithFilter();
+        allUsers = userService.getUsers("").getData().getUsers();
         updateDetails();
     }
 
     private void updateDetails() {
-        //accordion is misschien beter om maar 1 tegelijk te openen?
-        this.removeAll();
-        this.add(filterText);
-        filterText.focus();
-
-        List<Book> bookList = bookService.getBooksBorrowed("").getData().getBooksAllWithFilter();
-        List<Magazine> magazineList = magazineService.getMagazines("").getData().getMagazines();
-        List<LKBook> lkbookList = lkbookService.getBooks("").getData().getLKBooksAllWithFilter();
-        List<User> users = userService.getUsers("").getData().getUsers();
+        getChildren().filter(c -> c != filterText).toList().forEach(this::remove);
+        List<Book> bookList = allBooks;
+        List<Magazine> magazineList = allMagazines;
+        List<LKBook> lkbookList = allLkBooks;
+        List<User> users = allUsers;
 
         String filter = filterText.getValue() == null ? "" : filterText.getValue().trim().toLowerCase();
         BlackListUserDetails.blackListedUsers(users, bookList, magazineList, lkbookList,
