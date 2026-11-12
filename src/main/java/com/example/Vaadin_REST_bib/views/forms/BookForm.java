@@ -21,6 +21,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.BeanValidationBinder;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.binder.ValidationException;
+import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.shared.Registration;
 import jakarta.annotation.security.RolesAllowed;
 
@@ -37,6 +38,7 @@ public class BookForm extends FormLayout {
     Button btnSave = new Button("Save");
     Button btnDelete = new Button("Delete");
     Button btnCancel = new Button("Cancel");
+    Button btnLookup = new Button("Gegevens ophalen");
     Button btnScan = new Button("Scan met camera");
     private Book book;
     private final BookService bookService;
@@ -63,7 +65,16 @@ public class BookForm extends FormLayout {
         numberOfBooks.setVisible(false);
 
         btnScan.addClickListener(event -> scanBarcode());
-        add(barcode, btnScan, titel, auteur, taal, graad, fictieNonFictie, numberOfBooks,creatBtnLayout());
+        btnLookup.addClickListener(event -> loadMetadata(barcode.getValue()));
+        barcode.setValueChangeMode(ValueChangeMode.TIMEOUT);
+        barcode.setValueChangeTimeout(600);
+        barcode.addValueChangeListener(event -> {
+            if (event.getValue() != null && event.getValue().replaceAll("\\D", "").length() >= 10) {
+                loadMetadata(event.getValue());
+            }
+        });
+        barcode.addKeyPressListener(Key.ENTER, event -> loadMetadata(barcode.getValue()));
+        add(barcode, new HorizontalLayout(btnLookup, btnScan), titel, auteur, taal, graad, fictieNonFictie, numberOfBooks,creatBtnLayout());
     }
 
     public void setBook(Book book){
@@ -146,6 +157,15 @@ public class BookForm extends FormLayout {
         }
 
         barcode.setValue(scannedBarcode);
+        loadMetadata(scannedBarcode);
+    }
+
+    private void loadMetadata(String scannedBarcode) {
+        if (scannedBarcode == null || scannedBarcode.isBlank()) {
+            Notification.show("Vul eerst een barcode of ISBN in.");
+            return;
+        }
+
         Response response = bookService.getBookMetadataByBarcode(scannedBarcode);
         if (response == null || response.getData() == null || response.getData().getBook() == null) {
             Notification.show("Geen boekmetadata gevonden. Vul de gegevens handmatig aan.");
