@@ -48,10 +48,10 @@ public class BlackListUserDetails extends Details {
         if (overdue > 0) {
             reasons.add(String.format("%s %s te laat teruggebracht", overdue, overdue > 1 ? "items" : "item"));
         }
-        if (disabled) {
-            reasons.add(items.size() >= MAX_ITEMS
-                    ? String.format("Maximum van %s geleende items bereikt (%s geleend)", MAX_ITEMS, items.size())
-                    : "E-mail fout of niet bevestigd: gegevens nakijken");
+        if (items.size() >= MAX_ITEMS && disabled) {
+            reasons.add(String.format("Maximum van %s geleende items bereikt (%s geleend)", MAX_ITEMS, items.size()));
+        } else if (disabled && overdue == 0) {
+            reasons.add("E-mail fout of niet bevestigd: gegevens nakijken");
         }
 
         H6 summary = new H6(String.join(" | ", reasons));
