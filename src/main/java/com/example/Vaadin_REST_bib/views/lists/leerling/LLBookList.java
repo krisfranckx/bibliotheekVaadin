@@ -22,7 +22,6 @@ import com.vaadin.flow.function.SerializableBiConsumer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.RolesAllowed;
-import org.springframework.boot.autoconfigure.data.web.SpringDataWebProperties;
 
 @PageTitle("Boeken | lijst")
 @Route(value = "ll/books", layout = LLN_MainLayout.class) //wordt geladen binnen mainlayout

@@ -19,7 +19,6 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import jakarta.annotation.security.RolesAllowed;
-import org.springframework.boot.autoconfigure.data.web.SpringDataWebProperties;
 
 import static com.vaadin.flow.spring.data.VaadinSpringDataHelpers.toSpringDataSort;
 

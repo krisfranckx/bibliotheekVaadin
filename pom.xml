@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.2.5</version>
+		<version>4.1.2</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.example</groupId>
@@ -14,8 +14,8 @@
 	<name>Vaadin_REST_bib</name>
 	<description>Frontend voor REST_API_bib</description>
 	<properties>
-		<java.version>21</java.version>
-		<vaadin.version>24.3.10</vaadin.version>
+		<java.version>25</java.version>
+		<vaadin.version>25.3.5</vaadin.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -127,8 +127,8 @@
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-compiler-plugin</artifactId>
 						<configuration>
-								<source>21</source>
-								<target>21</target>
+								<source>25</source>
+								<target>25</target>
 							<encoding>UTF-8</encoding>
 						</configuration>
 					</plugin>
