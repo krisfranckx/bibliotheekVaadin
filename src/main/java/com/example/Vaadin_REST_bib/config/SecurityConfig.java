@@ -19,11 +19,9 @@ import org.springframework.web.reactive.function.client.WebClient;
 @Configuration
 public class SecurityConfig {
 
-    private final CustomAuthSuccesHandler customAuthSuccesHandler;
     private final UserDetailsService userDetailsService;
 
-    public SecurityConfig(CustomAuthSuccesHandler customAuthSuccesHandler, UserDetailsService userDetailsService) {
-        this.customAuthSuccesHandler = customAuthSuccesHandler;
+    public SecurityConfig(UserDetailsService userDetailsService) {
         this.userDetailsService = userDetailsService;
     }
 
@@ -42,6 +40,8 @@ public class SecurityConfig {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
         authProvider.setUserDetailsService(userDetailsService);
         authProvider.setPasswordEncoder(passwordEncoder());
+        // Hide user not found exceptions to prevent username enumeration
+        authProvider.setHideUserNotFoundExceptions(false);
         return authProvider;
     }
 
@@ -57,37 +57,30 @@ public class SecurityConfig {
         String adminBooksPath = Settings.BASE_URL_BACK + "/admin/books";
         
         http
-            // Configure CSRF - disable for API endpoints, allow for form login
+            // CSRF configuration
             .csrf(csrf -> csrf
                 .ignoringRequestMatchers(request ->
                     request.getRequestURI().startsWith(adminBooksPath)
                 )
             )
-            // Configure authorization
+            
+            // Authorization configuration
             .authorizeHttpRequests(authz -> authz
-                .requestMatchers("/login", "/registration", "/error").permitAll()
+                .requestMatchers("/login", "/login/**", "/registration", "/error").permitAll()
                 .requestMatchers("/VAADIN/**", "/PUSH_RESOURCE/**", "/HEARTBEAT").permitAll()
                 .anyRequest().authenticated()
             )
-            // Configure form login
-            .formLogin(formLogin -> formLogin
-                .loginPage("/login")
-                .permitAll()
-                .usernameParameter("username")
-                .passwordParameter("password")
-                .successHandler(customAuthSuccesHandler)
-                .failureUrl("/login?error")
-            )
+            
+            // Apply Vaadin security - this handles form login integration with Vaadin's LoginForm
+            .with(VaadinSecurityConfigurer.vaadin(), configurer -> {
+                configurer.loginView(LoginView.class);
+            })
+            
             // Configure logout
             .logout(logout -> logout
                 .logoutSuccessUrl("/login")
                 .permitAll()
             );
-        
-        // Apply Vaadin security configuration
-        http.with(VaadinSecurityConfigurer.vaadin(), configurer -> {
-            configurer.loginView(LoginView.class);
-        });
         
         return http.build();
     }
