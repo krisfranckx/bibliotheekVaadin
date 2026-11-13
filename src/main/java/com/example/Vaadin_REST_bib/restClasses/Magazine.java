@@ -39,7 +39,7 @@ public class Magazine extends BibItem{
     @JsonProperty("code_tijdschrift")
     private String code_tijdschrift;
     @JsonProperty("uitgeleend")
-    private boolean uitgeleend;
+    private Boolean uitgeleend;
     @JsonProperty("geleendDoor")
     private User geleendDoor;
     @JsonProperty("uitgeleendTot")
@@ -115,11 +115,11 @@ public class Magazine extends BibItem{
 
     @JsonProperty("uitgeleend")
     public boolean getUitgeleend() {
-        return uitgeleend;
+        return Boolean.TRUE.equals(uitgeleend);
     }
 
     @JsonProperty("uitgeleend")
-    public void setUitgeleend(boolean uitgeleend) {
+    public void setUitgeleend(Boolean uitgeleend) {
         this.uitgeleend = uitgeleend;
     }
 

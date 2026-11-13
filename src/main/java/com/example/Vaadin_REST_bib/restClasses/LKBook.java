@@ -33,7 +33,7 @@ public class LKBook extends BibItem{
     @JsonProperty("code")
     private String code;
     @JsonProperty("uitgeleend")
-    private boolean uitgeleend;
+    private Boolean uitgeleend;
     @JsonProperty("geleendDoor")
     private User geleendDoor;
     @JsonProperty("uitgeleendTot")
@@ -91,11 +91,11 @@ public class LKBook extends BibItem{
 
     @JsonProperty("uitgeleend")
     public boolean getUitgeleend() {
-        return uitgeleend;
+        return Boolean.TRUE.equals(uitgeleend);
     }
 
     @JsonProperty("uitgeleend")
-    public void setUitgeleend(boolean uitgeleend) {
+    public void setUitgeleend(Boolean uitgeleend) {
         this.uitgeleend = uitgeleend;
     }
 
