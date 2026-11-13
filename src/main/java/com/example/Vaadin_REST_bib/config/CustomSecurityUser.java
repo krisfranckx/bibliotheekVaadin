@@ -17,9 +17,16 @@ public class CustomSecurityUser extends User implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        Collection<SimpleGrantedAuthority> collection = new ArrayList();
-        for (String auth:this.user.getAuth().split(",")) {
-            collection.add(new SimpleGrantedAuthority(auth));
+        Collection<SimpleGrantedAuthority> collection = new ArrayList<>();
+        if (this.user.getAuth() != null && !this.user.getAuth().isEmpty()) {
+            for (String auth : this.user.getAuth().split(",")) {
+                String trimmedAuth = auth.trim();
+                // Ensure role has ROLE_ prefix for Spring Security
+                if (!trimmedAuth.startsWith("ROLE_")) {
+                    trimmedAuth = "ROLE_" + trimmedAuth;
+                }
+                collection.add(new SimpleGrantedAuthority(trimmedAuth));
+            }
         }
         return collection;
     }
@@ -41,7 +48,8 @@ public class CustomSecurityUser extends User implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return user.getEnabled();
+        // Check if user is enabled
+        return this.user.getEnabled() != null && this.user.getEnabled();
     }
 
     @Override
@@ -51,7 +59,7 @@ public class CustomSecurityUser extends User implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return this.user.getEnabled() != null && this.user.getEnabled();
     }
 
 }
