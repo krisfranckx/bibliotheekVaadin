@@ -3,6 +3,8 @@ package com.example.Vaadin_REST_bib.config;
 
 import com.example.Vaadin_REST_bib.restClasses.User;
 import com.example.Vaadin_REST_bib.services.UserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -14,7 +16,8 @@ import java.util.UUID;
 
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
-   UserService userService;
+    private static final Logger logger = LoggerFactory.getLogger(UserDetailsServiceImpl.class);
+    UserService userService;
 
     public UserDetailsServiceImpl(UserService userService) {
         this.userService = userService;
@@ -22,52 +25,25 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        return userService
-                .getUserByEmail(email)
-                .getData()
-                .getsecurityUser()
-                .map(CustomSecurityUser::new).orElseThrow(()-> new UsernameNotFoundException("Username not found"+email));
-    }
-
-
-
-    /*public String signUpUser(User user){
-        boolean userExists = userRepo.findByEmail(user.getEmail()).isPresent() ;
-        if(userExists){
-            throw new IllegalStateException("Email al in gebruik");
+        logger.debug("Loading user details for email: {}", email);
+        try {
+            Optional<User> userOpt = userService
+                    .getUserByEmail(email)
+                    .getData()
+                    .getsecurityUser();
+            
+            if (userOpt.isEmpty()) {
+                logger.warn("User not found with email: {}", email);
+                throw new UsernameNotFoundException("Username not found: " + email);
+            }
+            
+            User user = userOpt.get();
+            logger.debug("User found: {}, enabled: {}, auth: {}", user.getEmail(), user.getEnabled(), user.getAuth());
+            return new CustomSecurityUser(user);
+        } catch (Exception ex) {
+            logger.error("Error loading user details for email: {}", email, ex);
+            throw new UsernameNotFoundException("Username not found: " + email, ex);
         }
-        userService.createUser_registrated(user);
-
-
-        String token = UUID.randomUUID().toString();
-        ConfirmationToken confirmationToken = new ConfirmationToken(
-                token,
-                LocalDateTime.now(),
-                LocalDateTime.now().plusMinutes(15),
-                user
-        );
-        confirmationTokenService.saveConfirmationToken(confirmationToken);
-        emailService.sendHtmlEmail_confirmRegistration(user.getEmail(), user, confirmationToken.getToken());
-        return token;
-    }*/
-
-    /*public void enableUser(String email) {
-        User user = userRepo.findByEmail(email).get();
-        user.setEnabled(true);
-        user.setEnabledUI(true);
-        userRepo.save(user);
-    }*/
-
-    /*public void sendNewConfirmationMail(User user){
-        String token = UUID.randomUUID().toString();
-        ConfirmationToken confirmationToken = new ConfirmationToken(
-                token,
-                LocalDateTime.now(),
-                LocalDateTime.now().plusMinutes(15),
-                user
-        );
-        confirmationTokenService.saveConfirmationToken(confirmationToken);
-        emailService.sendHtmlEmail_confirmRegistration(user.getEmail(), user, confirmationToken.getToken());
-    }*/
+    }
 
 }
