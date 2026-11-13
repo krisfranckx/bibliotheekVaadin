@@ -396,7 +396,6 @@ jar-resources\messageListConnector.js
 jar-resources\theme-util.js
 jar-resources\tooltip.ts
 jar-resources\treeGridConnector.ts
-jar-resources\tsconfig.json
 jar-resources\vaadin-big-decimal-field.js
 jar-resources\vaadin-combo-box\comboBoxConnector.ts
 jar-resources\vaadin-combo-box\vaadin-combo-box-types.d.ts

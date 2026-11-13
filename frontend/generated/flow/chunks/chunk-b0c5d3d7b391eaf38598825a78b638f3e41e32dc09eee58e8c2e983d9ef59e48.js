@@ -41,5 +41,5 @@ import '@vaadin/combo-box/src/vaadin-combo-box-placeholder.js';
 import '@vaadin/combo-box/src/vaadin-combo-box-data-provider-mixin.js';
 import '@vaadin/multi-select-combo-box/src/vaadin-multi-select-combo-box.js';
 import '@vaadin/integer-field/src/vaadin-integer-field.js';
-import '@vaadin/notification/src/vaadin-notification.js';
 import '@vaadin/confirm-dialog/src/vaadin-confirm-dialog.js';
+import '@vaadin/notification/src/vaadin-notification.js';
