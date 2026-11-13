@@ -22,11 +22,13 @@ class FlowComponentDirective extends AsyncDirective {
     const newNode = hasNewNodeId ? this.getNewNode(appid, nodeid) : null;
     const oldNode = this.getOldNode(part);
 
-    clearTimeout(this.__nodeRetryTimeout);
-
     if (hasNewNodeId && !newNode) {
-      // If the node is not found, try again later.
-      this.__nodeRetryTimeout = setTimeout(() => this.updateContent(part, appid, nodeid));
+      // The node is not in the client registry. Flow sends the nodes of a
+      // response before the JavaScript that renders them, so this only happens
+      // for a node the server has already discarded, for example when a row is
+      // rendered again from a stale client cache. Such a node never arrives, so
+      // keep the current content until the next render replaces it.
+      return;
     } else if (oldNode === newNode) {
       return;
     } else if (oldNode && newNode) {
@@ -48,10 +50,6 @@ class FlowComponentDirective extends AsyncDirective {
       return;
     }
     return startNode.nextSibling;
-  }
-
-  disconnected() {
-    clearTimeout(this.__nodeRetryTimeout);
   }
 }
 

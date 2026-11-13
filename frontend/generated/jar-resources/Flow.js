@@ -1,20 +1,42 @@
 import { ConnectionIndicator, ConnectionState } from '@vaadin/common-frontend';
+import { collectBrowserDetails } from './BrowserHelpers';
 class FlowUiInitializationError extends Error {
 }
 // flow uses body for keeping references
 const flowRoot = window.document.body;
 const $wnd = window;
+const ROOT_NODE_ID = 1; // See StateTree.java
+function getClients() {
+    return Object.keys($wnd.Vaadin.Flow.clients)
+        .filter((key) => key !== 'TypeScript')
+        .map((id) => $wnd.Vaadin.Flow.clients[id]);
+}
+function sendEvent(eventName, data) {
+    getClients().forEach((client) => client.sendEventMessage(ROOT_NODE_ID, eventName, data));
+}
+// In the future could be replaced with RegExp.escape()
+function escapeRegExp(pattern) {
+    return pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
 /**
  * Client API for flow UI operations.
  */
 export class Flow {
+    config;
+    response = undefined;
+    pathname = '';
+    container;
+    // flag used to inform Testbench whether a server route is in progress
+    isActive = false;
+    baseRegex = /^\//;
+    appShellTitle;
+    navigation = '';
     constructor(config) {
-        this.response = undefined;
-        this.pathname = '';
-        // flag used to inform Testbench whether a server route is in progress
-        this.isActive = false;
-        this.baseRegex = /^\//;
-        this.navigation = '';
+        // Set window.name early so @PreserveOnRefresh can use it to identify the browser tab
+        // Only set if not already set to preserve any existing value
+        if (!window.name) {
+            window.name = `v-${Math.random()}`;
+        }
         flowRoot.$ = flowRoot.$ || [];
         this.config = config || {};
         // TB checks for the existence of window.Vaadin.Flow in order
@@ -30,7 +52,7 @@ export class Flow {
         const elm = document.head.querySelector('base');
         this.baseRegex = new RegExp(`^${
         // IE11 does not support document.baseURI
-        (document.baseURI || (elm && elm.href) || '/').replace(/^https?:\/\/[^/]+/i, '')}`);
+        escapeRegExp((document.baseURI || (elm && elm.href) || '/').replace(/^https?:\/\/[^/]+/i, ''))}`);
         this.appShellTitle = document.title;
         // Put a vaadin-connection-indicator in the dom
         this.addConnectionIndicator();
@@ -71,12 +93,8 @@ export class Flow {
         // Use capture phase to detect prevented / stopped events.
         document.addEventListener('click', (_e) => {
             if (_e.target) {
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore
-                if (_e.target.hasAttribute('router-link')) {
+                if (_e.composedPath().some((node) => node instanceof HTMLElement && node.hasAttribute('router-link'))) {
                     this.navigation = 'link';
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-ignore
                 }
                 else if (_e.composedPath().some((node) => node.nodeName === 'A')) {
                     this.navigation = 'client';
@@ -98,7 +116,12 @@ export class Flow {
                 }
                 catch (error) {
                     if (error instanceof FlowUiInitializationError) {
-                        // error initializing Flow: assume connection lost
+                        // error initializing Flow: assume connection lost. Report the
+                        // cause first: the message carries the HTTP status and response
+                        // body of the failed init request, and the offline stub returned
+                        // below replaces the view without a trace of why, so swallowing
+                        // this leaves nothing to diagnose but a missing UI.
+                        console.error('Failed to initialize the Flow UI, assuming the connection was lost and showing the offline stub.', error);
                         $wnd.Vaadin.connectionState.state = ConnectionState.CONNECTION_LOST;
                         return this.offlineStubAction();
                     }
@@ -131,14 +154,14 @@ export class Flow {
             this.loadingStarted();
             // The callback to run from server side to cancel navigation
             this.container.serverConnected = (cancel) => {
-                resolve(cmd && cancel ? cmd.prevent() : {});
+                resolve(cmd && cancel ? cmd.prevent() : cmd?.continue?.());
                 this.loadingFinished();
             };
             // Call server side to check whether we can leave the view
-            flowRoot.$server.leaveNavigation(this.getFlowRoutePath(ctx), this.getFlowRouteQuery(ctx));
+            sendEvent('ui-leave-navigation', { route: this.getFlowRoutePath(ctx), query: this.getFlowRouteQuery(ctx) });
         });
     }
-    // Send the remote call to `JavaScriptBootstrapUI` to render the flow
+    // Send the remote call to `UI` to render the flow
     // route specified by the context
     async flowNavigate(ctx, cmd) {
         if (this.response) {
@@ -153,6 +176,7 @@ export class Flow {
                         resolve(cmd.redirect(redirectContext.pathname));
                     }
                     else {
+                        cmd?.continue?.();
                         this.container.style.display = '';
                         resolve(this.container);
                     }
@@ -162,7 +186,13 @@ export class Flow {
                     this.loadingFinished();
                 };
                 // Call server side to navigate to the given route
-                flowRoot.$server.connectClient(this.getFlowRoutePath(ctx), this.getFlowRouteQuery(ctx), this.appShellTitle, history.state, this.navigation);
+                sendEvent('ui-navigate', {
+                    route: this.getFlowRoutePath(ctx),
+                    query: this.getFlowRouteQuery(ctx),
+                    appShellTitle: this.appShellTitle,
+                    historyState: history.state,
+                    trigger: this.navigation
+                });
                 // Default to history navigation trigger.
                 // Link and client cases are handled by click listener in loadingFinished().
                 this.navigation = 'history';
@@ -174,7 +204,10 @@ export class Flow {
         }
     }
     getFlowRoutePath(context) {
-        return decodeURIComponent(context.pathname).replace(this.baseRegex, '');
+        // Don't decode the pathname here - let the server handle decoding
+        // individual path segments. This preserves the distinction between
+        // literal slashes (path separators) and encoded slashes (%2F, data).
+        return context.pathname.replace(this.baseRegex, '');
     }
     getFlowRouteQuery(context) {
         return (context.search && context.search.substring(1)) || '';
@@ -183,6 +216,7 @@ export class Flow {
     async flowInit() {
         // Do not start flow twice
         if (!this.isFlowClientLoaded()) {
+            $wnd.Vaadin.Flow.nonce = this.findNonce();
             // show flow progress indicator
             this.loadingStarted();
             // Initialize server side UI
@@ -192,15 +226,9 @@ export class Flow {
                 await this.loadScript(pushScript);
             }
             const { appId } = appConfig;
-            // Load bootstrap script with server side parameters
-            const bootstrapMod = await import('./FlowBootstrap');
-            await bootstrapMod.init(this.response);
-            // Load custom modules defined by user
-            if (typeof this.config.imports === 'function') {
-                this.injectAppIdScript(appId);
-                await this.config.imports();
-            }
             // we use a custom tag for the flow app container
+            // This must be created before bootstrapMod.init is called as that call
+            // can handle a UIDL from the server, which relies on the container being available
             const tag = `flow-container-${appId.toLowerCase()}`;
             const serverCreatedContainer = document.querySelector(tag);
             if (serverCreatedContainer) {
@@ -211,8 +239,20 @@ export class Flow {
                 this.container.id = appId;
             }
             flowRoot.$[appId] = this.container;
-            // Load flow-client module
-            const clientMod = await import('./FlowClient');
+            // Load bootstrap script with server side parameters
+            const bootstrapMod = await import('./FlowBootstrap');
+            bootstrapMod.init(this.response);
+            // Load custom modules defined by user
+            if (typeof this.config.imports === 'function') {
+                this.injectAppIdScript(appId);
+                await this.config.imports();
+            }
+            // Load flow-client module. The bare specifier is intentional: the
+            // generated Vite config aliases it to FlowClient.js in jar-resources and
+            // lists it in optimizeDeps, and Vite only redirects bare specifiers to a
+            // pre-bundled dependency. Importing './FlowClient' relatively would make
+            // the dev server serve the ~90 modules of the client engine one by one.
+            const clientMod = await import('vaadin-flow-client');
             await this.flowInitClient(clientMod);
             // hide flow progress indicator
             this.loadingFinished();
@@ -232,14 +272,33 @@ export class Flow {
             script.onload = () => resolve();
             script.onerror = reject;
             script.src = url;
+            const { nonce } = $wnd.Vaadin.Flow;
+            if (nonce !== undefined) {
+                script.setAttribute('nonce', nonce);
+            }
             document.body.appendChild(script);
         });
+    }
+    findNonce() {
+        let nonce;
+        const scriptTags = document.head.getElementsByTagName('script');
+        for (const scriptTag of scriptTags) {
+            if (scriptTag.nonce) {
+                nonce = scriptTag.nonce;
+                break;
+            }
+        }
+        return nonce;
     }
     injectAppIdScript(appId) {
         const appIdWithoutHashCode = appId.substring(0, appId.lastIndexOf('-'));
         const scriptAppId = document.createElement('script');
         scriptAppId.type = 'module';
         scriptAppId.setAttribute('data-app-id', appIdWithoutHashCode);
+        const { nonce } = $wnd.Vaadin.Flow;
+        if (nonce !== undefined) {
+            scriptAppId.setAttribute('nonce', nonce);
+        }
         document.body.append(scriptAppId);
     }
     // After the flow-client javascript module has been loaded, this initializes flow UI
@@ -250,9 +309,7 @@ export class Flow {
         return new Promise((resolve) => {
             const intervalId = setInterval(() => {
                 // client `isActive() == true` while initializing or processing
-                const initializing = Object.keys($wnd.Vaadin.Flow.clients)
-                    .filter((key) => key !== 'TypeScript')
-                    .reduce((prev, id) => prev || $wnd.Vaadin.Flow.clients[id].isActive(), false);
+                const initializing = getClients().reduce((prev, client) => prev || client.isActive(), false);
                 if (!initializing) {
                     clearInterval(intervalId);
                     resolve();
@@ -268,11 +325,23 @@ export class Flow {
             $wnd.Vaadin.TypeScript.initial = undefined;
             return Promise.resolve(initial);
         }
+        const browserDetails = await collectBrowserDetails();
         // send a request to the `JavaScriptBootstrapHandler`
         return new Promise((resolve, reject) => {
             const xhr = new XMLHttpRequest();
             const httpRequest = xhr;
-            const requestPath = `?v-r=init&location=${encodeURIComponent(this.getFlowRoutePath(location))}&query=${encodeURIComponent(this.getFlowRouteQuery(location))}`;
+            // Browser details are appended as individual query parameters rather
+            // than as a single JSON-encoded value. A JSON payload in the URL
+            // produces many percent-encoded escape sequences (%7B, %22, %3A, ...)
+            // that some firewalls/WAFs (e.g. Sophos) flag and block, which would
+            // fail the bootstrap on the very first page load. Plain key=value pairs
+            // avoid that pattern entirely.
+            const browserDetailsParams = browserDetails
+                ? Object.entries(browserDetails)
+                    .map(([key, value]) => `&${key}=${encodeURIComponent(value)}`)
+                    .join('')
+                : '';
+            const requestPath = `?v-r=init&location=${encodeURIComponent(this.getFlowRoutePath(location))}&query=${encodeURIComponent(this.getFlowRouteQuery(location))}${browserDetailsParams}`;
             httpRequest.open('GET', requestPath);
             httpRequest.onerror = () => reject(new FlowUiInitializationError(`Invalid server response when initializing Flow UI.
         ${httpRequest.status}
